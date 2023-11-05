@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="assets/css/style.css">
+	<link rel="stylesheet" href="assets/css/googlecode.min.css">
+        <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
+        <link rel="manifest" href="assets/img/site.webmanifest">
+        <script src="assets/js/icons.js"></script>
+	<script src="config.js" defer></script>
+        <script src="assets/js/chat.js" defer></script>
+	<script src="https://cdn.jsdelivr.net/npm/markdown-it@latest/dist/markdown-it.min.js"></script>
+        <script>const user_image = `<img src="assets/img/user.png" alt="User Avatar">`;
+                const gpt_image = `<img src="assets/img/gpt.png" alt="GPT Avatar">`;</script>
+		<script src="assets/js/highlight.min.js"></script>
+        <script src="assets/js/highlightjs-copy.min.js"></script>
+        <script>window.conversation_id = Array.from(crypto.getRandomValues(new Uint8Array(8))).map(n => n.toString(24).padStart(4, '0')).join('-');</script>
+        <title>ChatGPT</title>
+    </head>
+    <body>
+        <div class="gradient"></div>
+        <div class="row">
+            <div class="box conversations">
+                <div class="top">
+                    <button class="new_convo" onclick="new_conversation()">
+                        <i class="fa-regular fa-plus"></i>
+                        <span>New chat</span>
+                    </button>
+                    <div class="spinner"></div>
+                </div>
+                <div class="bottom_buttons">
+                    <button onclick="delete_conversations()">
+                        <i class="fa-regular fa-trash"></i>
+                        <span>Clean chat</span>
+                    </button>
+                    <div class="info">
+                        <i class="fa-regular fa-circle-info"></i>
+                        <span class="convo-title">By: @<a>Made with ♥ by aviral</a><br>
+                            Version: 1.0.0-alpha<br>
+                        
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="conversation">
+                <div class="stop_generating stop_generating-hidden">
+                      <button id="cancelButton" onclick="stopAnswer()">
+                        <span>Stop</span>
+                        <i class="fa-regular fa-stop"></i>
+                    </button>
+                </div>
+                <div class="box" id="messages">
+                </div>
+                <div class="user-input">
+                    <div class="box input-box">
+                        <textarea id="message-input" placeholder="Ask me anything..." style="white-space: pre-line;"></textarea>
+                        <div id="start-button" style="margin: 0 20px 0 0;">
+                            <i class="fas fa-microphone"></i>                        
+                        </div>
+                       <style>
+                        #start-button:hover {
+    color: #647ea7;
+}
+#send-button:hover {
+    color: #647ea7;
+}
+                       </style>
+                        <div id="send-button">
+                            <i class="fa-regular fa-paper-plane-top"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <div class="field" style="margin-left:15px;">
+                    <label for="toggle-switch" style="justify-content: center;">
+                    <input type="checkbox" id="toggle-switch" name="toggle-switch" onclick="toggleTheme()" style="display: none;">
+                    <i class="fas fa-sun-bright fa-xl" style="color:orange;" id="sun-icon"></i>
+                    <i class="fas fa-moon fa-xl" style="color:lightgray;" id="moon-icon"></i>
+                    </label>
+                   </div>
+                   <div class="file-upload">
+                    <div class="file-upload-select">
+                        <div class="file-select-button" >Choose File</div>
+                    <div class="file-select-name">No file chosen...</div> 
+                    <input type="file" name="file-upload-input" id="file-upload-input">
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-left: 0; position:fixed; bottom: 15px;right:50px">
+                    <img src="assets/img/gpt.png" alt="description_of_image" style="width: 50px; height: 50px; border-radius: 10px; margin-right:10px">
+                    <p >Pluto : Feminist Chat Bot</p>
+                </div>
+              
+                <style>
+                    .file-upload .file-upload-select {
+	display: block;
+	color: #dbdbdb;
+	cursor: pointer;
+	text-align: left;
+	background: #1a242f;
+	overflow: hidden;
+	position: relative;
+	border-radius: 6px;
+}
+.file-upload .file-upload-select .file-select-button {
+	background: #161f27;
+	padding: 10px;
+	display: inline-block;
+}
+.file-upload .file-upload-select .file-select-name {
+	display: inline-block;
+	padding: 10px;
+}
+.file-upload .file-upload-select:hover .file-select-button {
+	background: #324759;
+	color: #ffffff;
+	transition: all 0.2s ease-in-out;
+	-moz-transition: all 0.2s ease-in-out;
+	-webkit-transition: all 0.2s ease-in-out;
+	-o-transition: all 0.2s ease-in-out;
+}
+.file-upload .file-upload-select input[type="file"] {
+	display: none;
+}
+
+
+                </style>
+                <script>
+                    let fileInput = document.getElementById("file-upload-input");
+let fileSelect = document.getElementsByClassName("file-upload-select")[0];
+fileSelect.onclick = function() {
+	fileInput.click();
+}
+fileInput.onchange = function() {
+	let filename = fileInput.files[0].name;
+	let selectName = document.getElementsByClassName("file-select-name")[0];
+	selectName.innerText = filename;
+}
+
+ // Create a hidden input element to store the result
+let resultInput = document.createElement('input');
+resultInput.type = 'hidden';
+resultInput.id = 'result';
+document.body.appendChild(resultInput);
+
+document.getElementById('file-upload-input').addEventListener('change', async function() {
+    var file = this.files[0];
+    var formData = new FormData();
+    formData.append('file', file);
+
+    const url = 'https://converter12.p.rapidapi.com/api/converter/1/FileConverter/Convert';
+    const options = {
+        method: 'POST',
+        headers: {
+            'X-RapidAPI-Key': '3b060c33ffmshb4a73b2991857ccp13f875jsnbfb3a5eed0bb',
+            'X-RapidAPI-Host': 'converter12.p.rapidapi.com'
+        },
+        body: formData
+    };
+
+    try {
+        const response = await fetch(url, options);
+        const result = await response.text();
+        console.log(result);
+        // Store the result in the hidden input element
+        resultInput.value = result;
+    } catch (error) {
+        console.error(error);
+    }
+    console.log("from out :",document.getElementById('result').value);
+});
+
+
+
+                </script>
+            </div>
+            
+        </div> 
+        <div class="mobile-sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+    </body>
+   
+    <style></style>
+</html>
